@@ -1,1 +1,5 @@
 fixtures/
+/lloyd-map
+/lloyd-permute
+/lloyd-uniq
+/packaging/debian/usr

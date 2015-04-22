@@ -1,0 +1,9 @@
+Package: lloyd
+Version: 0.1.1
+Section: utils
+Priority: optional
+Architecture: amd64
+Essential: no
+Depends: libc6 (>= 2.12)
+Maintainer: Martin Czygan <martin.czygan@gmail.com>
+Description: Line-delimited JSON utils.
