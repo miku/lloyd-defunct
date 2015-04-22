@@ -13,12 +13,16 @@ Go get all utils:
 Breaking up the problem
 -----------------------
 
-When working with large (RAM+) LDJ files, it is inconvenient to store *seen* values
-in a *set* because of the linear memory requirements. The traditional `uniq`
-is efficient, since it expects sorted input. The first problem therefore would
-be to sort a line-delimited JSON file by the values of a certain field.
+When working with large (RAM+) LDJ files, it is inconvenient to store *seen*
+values in a *set* because of the linear memory requirements. [Bloom
+filters](http://en.wikipedia.org/wiki/Bloom_filter) are more space efficent,
+but they allow false positives.
 
-There is already a fine `sort` on most Unix systems, which is multicore aware since 8.6:
+The traditional `uniq` is efficient, since it expects sorted input. The first
+problem therefore would be to sort a line-delimited JSON file by the values of
+a certain field.
+
+There is already `sort` on most Unix systems, which is multicore aware since 8.6:
 
 > As of coreutils 8.6 (2010-10-15), GNU sort already sorts in parallel to make use of several processors where available.
 
