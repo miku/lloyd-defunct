@@ -1,4 +1,5 @@
-fixtures/
+fixtures/large*
+fixtures/small*
 /lloyd-map
 /lloyd-permute
 /lloyd-uniq
