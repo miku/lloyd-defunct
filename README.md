@@ -3,6 +3,13 @@ README
 
 You ever wanted to use `uniq` on a line delimited JSON file? You've come to the right place.
 
+Installation
+------------
+
+Go get all utils:
+
+    $ go get github.com/miku/lloyd/cmd/...
+
 Breaking up the problem
 -----------------------
 
@@ -77,3 +84,11 @@ Now it is possible to deduplicate with constant memory:
     {"name": "Claude", "city": "Berlin"}
     {"name": "Diane", "city": "New York"}
     {"name": "涛", "city": "香港"}
+
+Caveats
+-------
+
+Current limitations:
+
+* Only top-level keys are supported yet.
+* The values should not contain tabs, since `lloyd-map` currently outputs tab delimited lists.
