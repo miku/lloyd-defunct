@@ -6,7 +6,7 @@ You ever wanted to use `uniq` on a line delimited JSON file? You've come to the 
 Breaking up the problem
 -----------------------
 
-When working with large LDJ files, it is inconvenient to store *seen* values
+When working with large (RAM+) LDJ files, it is inconvenient to store *seen* values
 in a *set* because of the linear memory requirements. The traditional `uniq`
 is efficient, since it expects sorted input. The first problem therefore would
 be to sort a line-delimited JSON file by the values of a certain field.
