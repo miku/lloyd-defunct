@@ -4,3 +4,4 @@ fixtures/small*
 /lloyd-permute
 /lloyd-uniq
 /packaging/debian/usr
+permutation.txt
