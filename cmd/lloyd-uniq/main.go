@@ -61,4 +61,5 @@ func main() {
 		lastValue = value
 		i++
 	}
+	fmt.Printf(lastLine)
 }

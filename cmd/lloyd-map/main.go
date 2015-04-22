@@ -114,7 +114,7 @@ func main() {
 	}
 	l := make([]string, len(lines))
 	copy(l, lines)
-	batches <- Batch{Lines: l, Key: *key, BaseOffset: offset}
+	batches <- Batch{Lines: l, Key: *key, BaseOffset: baseOffset}
 	lines = lines[:0]
 
 	close(batches)

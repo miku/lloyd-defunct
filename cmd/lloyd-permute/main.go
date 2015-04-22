@@ -33,7 +33,7 @@ func main() {
 			break
 		}
 		if err != nil {
-			log.Fatal("xx", err)
+			log.Fatal(err)
 		}
 		fields := strings.Fields(line)
 		if len(fields) != 2 {
@@ -47,8 +47,8 @@ func main() {
 		if err != nil {
 			log.Fatalf("invalid length: %s", fields[1])
 		}
-		file.Seek(int64(offset), 0)
 		buf := make([]byte, length)
+		file.Seek(int64(offset), 0)
 		_, err = file.Read(buf)
 		if err != io.EOF && err != nil {
 			log.Fatal(err)
