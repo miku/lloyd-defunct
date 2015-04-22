@@ -55,10 +55,11 @@ Step by step
     138 38
     34  34
 
+    $ lloyd-map -key name fixtures/test.ldj | sort | cut -f 2- > permutation.txt
+
 This cryptic list contains the document boundaries in order of the sorted values.
 
-    $ lloyd-map -key name fixtures/test.ldj | sort | cut -f 2- | \
-        lloyd-permute fixtures/test.ldj
+    $ cat permutation.txt | lloyd-permute fixtures/test.ldj
 
     {"name": "Ann", "city": "London"}
     {"name": "Ann", "city": "Moscow"}
@@ -69,8 +70,7 @@ This cryptic list contains the document boundaries in order of the sorted values
 
 Now it is possible to deduplicate with constant memory:
 
-    $ lloyd-map -key name fixtures/test.ldj | sort | cut -f 2- | \
-        lloyd-permute fixtures/test.ldj | lloyd-uniq -key name
+    $ cat permutation.txt | lloyd-permute fixtures/test.ldj | lloyd-uniq -key name
 
     {"name": "Ann", "city": "Moscow"}
     {"name": "Bob", "city": "Paris"}
