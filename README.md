@@ -1,7 +1,7 @@
 README
 ======
 
-You ever wanted to use `uniq` on a line delimited JSON file? You've come to the right place.
+Did you ever wanted to use `uniq` on a line delimited JSON file? You've come to the right place.
 
 Installation
 ------------
@@ -18,18 +18,17 @@ values in a *set* because of the linear memory requirements. [Bloom
 filters](http://en.wikipedia.org/wiki/Bloom_filter) are more space efficent,
 but they allow false positives.
 
-The traditional `uniq` is efficient, since it expects sorted input. The first
-problem therefore would be to sort a line-delimited JSON file by the values of
-a certain field.
+The traditional `uniq` is efficient, since it works on sorted input. The first
+problem therefore would be to sort a line-delimited JSON file by a key or keys.
 
 There is already `sort` on most Unix systems, which is multicore aware since 8.6:
 
 > As of coreutils 8.6 (2010-10-15), GNU sort already sorts in parallel to make use of several processors where available.
 
-From: http://unix.stackexchange.com/a/88704/376
+See also: http://unix.stackexchange.com/a/88704/376 and [9face836f3](http://git.savannah.gnu.org/cgit/coreutils.git/commit/?id=9face836f36c507f01a7d7a33138c5a303e3b1df).
 
-We can bracket the `sort`, so it works with LDJ files, too: First extract the interesting value along with document
-boundaries from the LDJ, then sort by the value and then permute the original file, given the sorted boundaries:
+We can bracket the `sort`, so it works with LDJ files, too: First *extract* the interesting value along with document
+boundaries from the LDJ, then sort by the value and then *permute* the original file, given the sorted boundaries:
 
 Step by step
 ------------
@@ -68,7 +67,7 @@ Step by step
 
     $ lloyd-map -key name fixtures/test.ldj | sort | cut -f 2- > permutation.txt
 
-This cryptic list contains the document boundaries in order of the sorted values.
+This cryptic list in `permutation.txt` contains the document boundaries - as offset and length - sorted by the given key.
 
     $ cat permutation.txt | lloyd-permute fixtures/test.ldj
 
@@ -79,7 +78,7 @@ This cryptic list contains the document boundaries in order of the sorted values
     {"name": "Diane", "city": "New York"}
     {"name": "涛", "city": "香港"}
 
-Now it is possible to deduplicate with constant memory:
+Now it is possible to deduplicate with *constant* memory:
 
     $ cat permutation.txt | lloyd-permute fixtures/test.ldj | lloyd-uniq -key name
 
@@ -95,4 +94,5 @@ Caveats
 Current limitations:
 
 * Only top-level keys are supported yet.
+* Only a single key can be specified.
 * The values should not contain tabs, since `lloyd-map` currently outputs tab delimited lists.
