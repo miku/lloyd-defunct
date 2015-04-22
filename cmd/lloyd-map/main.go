@@ -51,10 +51,10 @@ func worker(batches chan Batch, out chan RecordInfo, wg *sync.WaitGroup) {
 
 func sink(w io.Writer, out chan RecordInfo, done chan bool) {
 	bw := bufio.NewWriter(w)
-	defer bw.Flush()
 	for ri := range out {
 		bw.WriteString(fmt.Sprintf("%s\t%d\t%d\n", ri.Value, ri.Offset, ri.Length))
 	}
+	bw.Flush()
 	done <- true
 }
 
