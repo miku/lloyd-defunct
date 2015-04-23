@@ -30,6 +30,7 @@ clean:
 	rm -f $(TARGETS)
 	rm -f $(PROJECT)-*.x86_64.rpm
 	rm -f packaging/deb/$(PROJECT)*.deb
+	rm -f $(PROJECT)*.deb
 	rm -rf packaging/deb/$(PROJECT)/usr
 
 cover:
@@ -48,6 +49,7 @@ deb: $(TARGETS)
 	mkdir -p packaging/deb/$(PROJECT)/usr/sbin
 	cp $(TARGETS) packaging/deb/$(PROJECT)/usr/sbin
 	cd packaging/deb && fakeroot dpkg-deb --build $(PROJECT) .
+	mv packaging/deb/*.deb .
 
 rpm: $(TARGETS)
 	mkdir -p $(HOME)/rpmbuild/{BUILD,SOURCES,SPECS,RPMS}
