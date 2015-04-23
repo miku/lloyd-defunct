@@ -12,9 +12,10 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/miku/lloyd"
 )
 
 // Batch contains lines and the offset from which they originate.
@@ -42,20 +43,11 @@ func worker(batches chan Batch, out chan RecordInfo, wg *sync.WaitGroup) {
 
 			var values []string
 			for _, key := range batch.Keys {
-				value, ok := dst[key]
-				if !ok {
-					log.Fatal("missing key")
+				value, err := lloyd.StringValue(key, dst)
+				if err != nil {
+					log.Fatal(err)
 				}
-				switch value.(type) {
-				case string:
-					values = append(values, value.(string))
-				case int:
-					values = append(values, fmt.Sprintf("%d", value.(int)))
-				case float64:
-					values = append(values, strconv.FormatFloat(value.(float64), 'f', 6, 64))
-				default:
-					log.Fatal("value type mismatch")
-				}
+				values = append(values, value)
 			}
 
 			length := int64(len(line))
