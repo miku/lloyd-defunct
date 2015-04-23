@@ -2,6 +2,6 @@ fixtures/large*
 fixtures/small*
 /lloyd-map
 /lloyd-permute
-/packaging/debian/usr
+/packaging/deb/lloyd/usr/
 lloyd*.deb
 lloyd*.rpm
