@@ -2,6 +2,4 @@ fixtures/large*
 fixtures/small*
 /lloyd-map
 /lloyd-permute
-/lloyd-uniq
 /packaging/debian/usr
-permutation.txt

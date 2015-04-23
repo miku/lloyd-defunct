@@ -13,7 +13,7 @@ Go get all utils:
 Breaking up the problem
 -----------------------
 
-When working with large (RAM+) LDJ files, it is inconvenient to store *seen*
+When working with large[1] LDJ files, it is inconvenient to store *seen*
 values in a *set* because of the linear memory requirements. [Bloom
 filters](http://en.wikipedia.org/wiki/Bloom_filter) are more space efficent,
 but they allow false positives.
@@ -30,63 +30,63 @@ See also: http://unix.stackexchange.com/a/88704/376 and [9face836f3](http://git.
 We can bracket the `sort`, so it works with LDJ files, too: First *extract* the interesting value along with document
 boundaries from the LDJ, then sort by the value and then *permute* the original file, given the sorted boundaries:
 
+[1] large: does not fit in memory
+
 Step by step
 ------------
 
     $ cat fixtures/test.ldj
-    {"name": "Ann", "city": "London"}
-    {"name": "涛", "city": "香港"}
-    {"name": "Bob", "city": "Paris"}
-    {"name": "Claude", "city": "Berlin"}
-    {"name": "Diane", "city": "New York"}
-    {"name": "Ann", "city": "Moscow"}
+    {"name": "Ann", "more": {"city": "London", "syno": 4}}
+    {"name": "涛", "more": {"city": "香港", "syno": 1}}
+    {"name": "Bob", "more": {"city": "Paris", "syno": 3}}
+    {"name": "Claude", "more": {"city": "Berlin", "syno": 5}}
+    {"name": "Diane", "more": {"city": "New York", "syno": 6}}
+    {"name": "Ann", "more": {"city": "Moscow", "syno": 2}}
 
-    $ lloyd-map -key name fixtures/test.ldj
-    Ann 0   34
-    涛   34  34
-    Bob 68  33
-    Claude  101 37
-    Diane   138 38
-    Ann 176 34
 
-    $ lloyd-map -key name fixtures/test.ldj | sort
-    Ann 0   34
-    Ann 176 34
-    Bob 68  33
-    Claude  101 37
-    Diane   138 38
-    涛   34  34
+    $ lloyd-map -keys 'name, more.syno' fixtures/test.ldj
+    Ann 4   0   55
+    涛   1   55  55
+    Bob 3   110 54
+    Claude  5   164 58
+    Diane   6   222 59
+    Ann 2   281 55
 
-    $ lloyd-map -key name fixtures/test.ldj | sort | cut -f 2-
-    0   34
-    176 34
-    68  33
-    101 37
-    138 38
-    34  34
+    $ lloyd-map -keys 'name, more.syno' fixtures/test.ldj | sort
+    Ann 2   281 55
+    Ann 4   0   55
+    Bob 3   110 54
+    Claude  5   164 58
+    Diane   6   222 59
+    涛   1   55  55
 
-    $ lloyd-map -key name fixtures/test.ldj | sort | cut -f 2- > permutation.txt
+Now a `sort -u` will do the job, if restricted to the first column:
 
-This cryptic list in `permutation.txt` contains the document boundaries - as offset and length - sorted by the given key.
+    $ lloyd-map -keys 'name, more.syno' fixtures/test.ldj | sort -uk1,1
+    Ann 4   0   55
+    Bob 3   110 54
+    Claude  5   164 58
+    Diane   6   222 59
+    涛   1   55  55
 
-    $ cat permutation.txt | lloyd-permute fixtures/test.ldj
+Now we only need to *seek and read* to the locations given as offset and
+length in the *last two columns* and slice out the corresponding records from
+the original file:
 
-    {"name": "Ann", "city": "London"}
-    {"name": "Ann", "city": "Moscow"}
-    {"name": "Bob", "city": "Paris"}
-    {"name": "Claude", "city": "Berlin"}
-    {"name": "Diane", "city": "New York"}
-    {"name": "涛", "city": "香港"}
+    $ lloyd-map -keys 'name, more.syno' fixtures/test.ldj | sort -uk1,1 | cut -f3-
+    0   55
+    110 54
+    164 58
+    222 59
+    55  55
 
-Now it is possible to deduplicate with *constant* memory:
+    $ lloyd-map -keys 'name, more.syno' fixtures/test.ldj | sort -uk1,1 | cut -f3- | lloyd-permute fixtures/test.ldj
 
-    $ cat permutation.txt | lloyd-permute fixtures/test.ldj | lloyd-uniq -key name
-
-    {"name": "Ann", "city": "Moscow"}
-    {"name": "Bob", "city": "Paris"}
-    {"name": "Claude", "city": "Berlin"}
-    {"name": "Diane", "city": "New York"}
-    {"name": "涛", "city": "香港"}
+    {"name": "Ann", "more": {"city": "London", "syno": 4}}
+    {"name": "Bob", "more": {"city": "Paris", "syno": 3}}
+    {"name": "Claude", "more": {"city": "Berlin", "syno": 5}}
+    {"name": "Diane", "more": {"city": "New York", "syno": 6}}
+    {"name": "涛", "more": {"city": "香港", "syno": 1}}
 
 Caveats
 -------
@@ -96,3 +96,4 @@ Current limitations:
 * Only top-level keys are supported yet.
 * Only a single key can be specified.
 * The values should not contain tabs, since `lloyd-map` currently outputs tab delimited lists.
+

@@ -39,7 +39,12 @@ func worker(batches chan Batch, out chan RecordInfo, wg *sync.WaitGroup) {
 		offset := batch.BaseOffset
 		for _, line := range batch.Lines {
 			dst := make(map[string]interface{})
-			json.Unmarshal([]byte(line), &dst)
+
+			d := json.NewDecoder(strings.NewReader(line))
+			d.UseNumber()
+			if err := d.Decode(&dst); err != nil {
+				log.Fatal(err)
+			}
 
 			var values []string
 			for _, key := range batch.Keys {

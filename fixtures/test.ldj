@@ -1,6 +1,6 @@
-{"name": "Ann", "city": "London"}
-{"name": "涛", "city": "香港"}
-{"name": "Bob", "city": "Paris"}
-{"name": "Claude", "city": "Berlin"}
-{"name": "Diane", "city": "New York"}
-{"name": "Ann", "city": "Moscow"}
+{"name": "Ann", "more": {"city": "London", "syno": 4}}
+{"name": "涛", "more": {"city": "香港", "syno": 1}}
+{"name": "Bob", "more": {"city": "Paris", "syno": 3}}
+{"name": "Claude", "more": {"city": "Berlin", "syno": 5}}
+{"name": "Diane", "more": {"city": "New York", "syno": 6}}
+{"name": "Ann", "more": {"city": "Moscow", "syno": 2}}
