@@ -86,7 +86,8 @@ the original file:
     222 59
     55  55
 
-    $ lloyd-map -keys 'name, more.syno' fixtures/test.ldj | sort -uk1,1 | cut -f3- | lloyd-permute fixtures/test.ldj
+    $ lloyd-map -keys 'name, more.syno' fixtures/test.ldj | sort -uk1,1 | cut -f3- | \
+      lloyd-permute fixtures/test.ldj
 
     {"name": "Ann", "more": {"city": "London", "syno": 4}}
     {"name": "Bob", "more": {"city": "Paris", "syno": 3}}
