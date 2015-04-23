@@ -1,6 +1,6 @@
 Summary:    Line-delimited JSON utils.
 Name:       lloyd
-Version:    0.2.0
+Version:    0.2.1
 Release:    0
 License:    MIT
 BuildRoot:  %{_tmppath}/%{name}-build
@@ -46,7 +46,10 @@ rm -rf %{_topdir}/BUILD/%{name}
 /usr/local/sbin/lloyd-permute
 
 %changelog
-* Wed Apr 23 2015 Martin Czygan
+* Thu Apr 23 2015 Martin Czygan
+- 0.2.1, first public release
+
+* Thu Apr 23 2015 Martin Czygan
 - 0.2.0, remove lloyd-uniq
 
 * Wed Apr 22 2015 Martin Czygan
