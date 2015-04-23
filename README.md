@@ -35,6 +35,9 @@ boundaries from the LDJ, then sort by the value and then *permute* the original 
 Step by step
 ------------
 
+We would like to filter out documents with duplicate names from the following file. The name with the highest `more.syno`
+should win.
+
     $ cat fixtures/test.ldj
     {"name": "Ann", "more": {"city": "London", "syno": 4}}
     {"name": "涛", "more": {"city": "香港", "syno": 1}}
@@ -43,6 +46,7 @@ Step by step
     {"name": "Diane", "more": {"city": "New York", "syno": 6}}
     {"name": "Ann", "more": {"city": "Moscow", "syno": 2}}
 
+First, extract the relevant keys.
 
     $ lloyd-map -keys 'name, more.syno' fixtures/test.ldj
     Ann 4   0   55
@@ -51,6 +55,8 @@ Step by step
     Claude  5   164 58
     Diane   6   222 59
     Ann 2   281 55
+
+And use traditional sort.
 
     $ lloyd-map -keys 'name, more.syno' fixtures/test.ldj | sort
     Ann 2   281 55
@@ -88,12 +94,7 @@ the original file:
     {"name": "Diane", "more": {"city": "New York", "syno": 6}}
     {"name": "涛", "more": {"city": "香港", "syno": 1}}
 
-Caveats
--------
+Current limitations
+-------------------
 
-Current limitations:
-
-* Only top-level keys are supported yet.
-* Only a single key can be specified.
 * The values should not contain tabs, since `lloyd-map` currently outputs tab delimited lists.
-
