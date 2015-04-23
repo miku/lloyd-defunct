@@ -11,10 +11,20 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/miku/lloyd"
 )
 
 func main() {
+	version := flag.Bool("v", false, "prints current program version")
+
 	flag.Parse()
+
+	if *version {
+		fmt.Println(lloyd.AppVersion)
+		os.Exit(0)
+	}
+
 	if flag.NArg() < 1 {
 		log.Fatal("input file required")
 	}

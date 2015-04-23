@@ -84,8 +84,14 @@ func main() {
 	rawKeys := flag.String("keys", "", "key or keys to extract (top-level only)")
 	workers := flag.Int("w", runtime.NumCPU(), "number of workers")
 	size := flag.Int("size", 10000, "number of lines in one batch")
+	version := flag.Bool("v", false, "prints current program version")
 
 	flag.Parse()
+
+	if *version {
+		fmt.Println(lloyd.AppVersion)
+		os.Exit(0)
+	}
 
 	runtime.GOMAXPROCS(*workers)
 
