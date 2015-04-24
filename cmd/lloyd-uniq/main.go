@@ -20,9 +20,15 @@ import (
 
 func main() {
 	key := flag.String("key", "", "key to deduplicate on")
+	version := flag.Bool("v", false, "prints current program version")
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
 
 	flag.Parse()
+
+	if *version {
+		fmt.Println(lloyd.AppVersion)
+		os.Exit(0)
+	}
 
 	if flag.NArg() < 1 {
 		log.Fatal("input file required")
