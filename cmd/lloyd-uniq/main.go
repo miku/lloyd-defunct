@@ -22,6 +22,7 @@ func main() {
 	version := flag.Bool("v", false, "prints current program version")
 	verbose := flag.Bool("verbose", false, "print debug information")
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
+	size := flag.Int("size", 200, "group insert size")
 
 	flag.Parse()
 
@@ -81,11 +82,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	stmt, err := tx.Prepare("INSERT OR REPLACE INTO store VALUES (?, ?)")
+
+	var vs []string
+	for i := 0; i < *size; i++ {
+		vs = append(vs, "(?, ?)")
+	}
+
+	stmt, err := tx.Prepare(fmt.Sprintf("INSERT OR REPLACE INTO store (key, value) VALUES %s", strings.Join(vs, ",")))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer stmt.Close()
+
+	var i int
+	var valueStrings []string
+	var valueArgs []interface{}
 
 	for {
 		line, err := reader.ReadString('\n')
@@ -99,6 +110,7 @@ func main() {
 		dst := make(map[string]interface{})
 		d := json.NewDecoder(strings.NewReader(line))
 		d.UseNumber()
+
 		if err := d.Decode(&dst); err != nil {
 			log.Fatal(err)
 		}
@@ -108,10 +120,41 @@ func main() {
 			log.Fatal(err)
 		}
 
-		_, err = stmt.Exec(value, strings.TrimSpace(line))
+		valueStrings = append(valueStrings, "(?, ?)")
+		valueArgs = append(valueArgs, value)
+		valueArgs = append(valueArgs, strings.TrimSpace(line))
+
+		i++
+
+		if i%*size == 0 {
+			_, err = stmt.Exec(valueArgs...)
+			if err != nil {
+				log.Fatal(err)
+			}
+			valueStrings = valueStrings[:0]
+			valueArgs = valueArgs[:0]
+		}
+	}
+
+	if len(valueArgs) > 0 {
+		remaining := len(valueArgs) / 2
+
+		vs = vs[:0]
+		for j := 0; j < remaining; j++ {
+			vs = append(vs, "(?, ?)")
+		}
+
+		stmt, err = tx.Prepare(fmt.Sprintf("INSERT OR REPLACE INTO store (key, value) VALUES %s", strings.Join(vs, ",")))
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer stmt.Close()
+
+		_, err = stmt.Exec(valueArgs...)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 	}
 
 	if *verbose {
