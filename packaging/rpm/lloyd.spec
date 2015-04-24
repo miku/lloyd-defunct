@@ -30,6 +30,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/local/sbin
 # the argument on -m is the permissions expressed as octal. (See chmod man page for details.)
 install -m 755 lloyd-map $RPM_BUILD_ROOT/usr/local/sbin
 install -m 755 lloyd-permute $RPM_BUILD_ROOT/usr/local/sbin
+install -m 755 lloyd-uniq $RPM_BUILD_ROOT/usr/local/sbin
 
 %post
 # the post section is where you can run commands after the rpm is installed.
@@ -44,6 +45,7 @@ rm -rf %{_topdir}/BUILD/%{name}
 %defattr(-,root,root)
 /usr/local/sbin/lloyd-map
 /usr/local/sbin/lloyd-permute
+/usr/local/sbin/lloyd-uniq
 
 %changelog
 * Thu Apr 23 2015 Martin Czygan
