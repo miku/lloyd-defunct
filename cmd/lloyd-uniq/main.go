@@ -20,6 +20,7 @@ import (
 func main() {
 	key := flag.String("key", "", "key to deduplicate on")
 	version := flag.Bool("v", false, "prints current program version")
+	verbose := flag.Bool("verbose", false, "print debug information")
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
 
 	flag.Parse()
@@ -53,6 +54,10 @@ func main() {
 
 	}
 
+	if *verbose {
+		log.Println(tmpfile.Name())
+	}
+
 	db, err := sql.Open("sqlite3", tmpfile.Name())
 	if err != nil {
 		log.Fatal(err)
@@ -61,6 +66,9 @@ func main() {
 	defer func() {
 		db.Close()
 		os.Remove(tmpfile.Name())
+		if *verbose {
+			log.Println("cleanup done")
+		}
 	}()
 
 	init := `CREATE TABLE IF NOT EXISTS store (key text UNIQUE, value text)`
@@ -106,7 +114,15 @@ func main() {
 		}
 	}
 
+	if *verbose {
+		log.Println("committing...")
+	}
+
 	tx.Commit()
+
+	if *verbose {
+		log.Println("writing out...")
+	}
 
 	rows, err := db.Query("SELECT value FROM store")
 	if err != nil {
