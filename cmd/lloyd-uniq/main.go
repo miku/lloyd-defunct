@@ -1,8 +1,3 @@
-// 1. Read n lines
-// 2. Distribute batches to workers
-// 3. Workers parse JSON and return {syno: int, key: string, payload: string}
-// ...
-
 package main
 
 import (
@@ -94,12 +89,11 @@ func main() {
 
 	tx.Commit()
 
-	// query
 	rows, err := db.Query("SELECT value FROM store")
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	for rows.Next() {
 		var value string
 		err = rows.Scan(&value)
