@@ -23,6 +23,7 @@ func main() {
 	verbose := flag.Bool("verbose", false, "print debug information")
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
 	size := flag.Int("size", 200, "group insert size")
+	commit := flag.Int("commit", 500000, "tx commit size")
 
 	flag.Parse()
 
@@ -72,7 +73,7 @@ func main() {
 		}
 	}()
 
-	init := `CREATE TABLE IF NOT EXISTS store (key text UNIQUE, value text)`
+	init := `CREATE TABLE IF NOT EXISTS store (key text UNIQUE, value text); CREATE INDEX store_key_idx ON store(key);`
 	_, err = db.Exec(init)
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, init)
@@ -81,6 +82,11 @@ func main() {
 	tx, err := db.Begin()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	_, err = db.Exec(`PRAGMA synchronous = OFF; PRAGMA journal_mode = OFF;`)
+	if err != nil {
+		log.Fatalf("%q: %s\n", err, init)
 	}
 
 	var vs []string
@@ -133,6 +139,24 @@ func main() {
 			}
 			valueStrings = valueStrings[:0]
 			valueArgs = valueArgs[:0]
+		}
+
+		if i%*commit == 0 {
+			err = tx.Commit()
+			if err != nil {
+				log.Fatal(err)
+			}
+			if *verbose {
+				log.Printf("commit @%d", i)
+			}
+			tx, err = db.Begin()
+			if err != nil {
+				log.Fatal(err)
+			}
+			stmt, err = tx.Prepare(fmt.Sprintf("INSERT OR REPLACE INTO store (key, value) VALUES %s", strings.Join(vs, ",")))
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 
