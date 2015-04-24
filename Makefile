@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-TARGETS = lloyd-map lloyd-permute
+TARGETS = lloyd-map lloyd-permute lloyd-uniq
 PROJECT = lloyd
 
 # http://docs.travis-ci.com/user/languages/go/#Default-Test-Script
@@ -18,7 +18,7 @@ fmt:
 vet:
 	go vet ./...
 
-all: fmt test lloyd-map lloyd-permute
+all: fmt test $(TARGETS)
 
 
 install:
@@ -42,6 +42,9 @@ lloyd-map:
 
 lloyd-permute:
 	go build -o lloyd-permute cmd/lloyd-permute/main.go
+
+lloyd-uniq:
+	go build -o lloyd-uniq cmd/lloyd-uniq/main.go
 
 # ==== packaging
 
