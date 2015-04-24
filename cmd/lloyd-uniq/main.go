@@ -7,13 +7,18 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"os"
 	"strings"
+	"time"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/miku/lloyd"
 )
 
@@ -32,10 +37,33 @@ func main() {
 	}
 	reader := bufio.NewReader(file)
 
+	rand.Seed(time.Now().UTC().UnixNano())
+	db, err := sql.Open("sqlite3", fmt.Sprintf("./.lloyd.tmp-%d", rand.Int63n(10000000000)))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	init := `CREATE TABLE IF NOT EXISTS store (key text UNIQUE, value text)`
+	_, err = db.Exec(init)
+	if err != nil {
+		log.Fatalf("%q: %s\n", err, init)
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
+	stmt, err := tx.Prepare("INSERT OR REPLACE INTO store VALUES (?, ?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+
 	for {
 		line, err := reader.ReadString('\n')
 		if err == io.EOF {
-			log.Fatal(err)
+			break
 		}
 		if err != nil {
 			log.Fatal(err)
@@ -52,5 +80,27 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		_, err = stmt.Exec(value, strings.TrimSpace(line))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	tx.Commit()
+
+	// query
+	rows, err := db.Query("SELECT value FROM store")
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	for rows.Next() {
+		var value string
+		err = rows.Scan(&value)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(value)
 	}
 }
