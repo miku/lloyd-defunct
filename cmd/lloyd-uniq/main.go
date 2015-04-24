@@ -7,12 +7,11 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
-	"math/rand"
 	"os"
 	"runtime/pprof"
 	"strings"
-	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/miku/lloyd"
@@ -49,16 +48,19 @@ func main() {
 	}
 	reader := bufio.NewReader(file)
 
-	rand.Seed(time.Now().UTC().UnixNano())
-	dbpath := fmt.Sprintf("./.lloyd.tmp-%d", rand.Int63n(10000000000))
-	db, err := sql.Open("sqlite3", dbpath)
+	tmpfile, err := ioutil.TempFile("", "lloyd-")
+	if err != nil {
+
+	}
+
+	db, err := sql.Open("sqlite3", tmpfile.Name())
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer func() {
 		db.Close()
-		os.Remove(dbpath)
+		os.Remove(tmpfile.Name())
 	}()
 
 	init := `CREATE TABLE IF NOT EXISTS store (key text UNIQUE, value text)`
