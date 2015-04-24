@@ -8,3 +8,5 @@ fixtures/1*ldj
 /packaging/deb/lloyd/usr/
 lloyd*.deb
 lloyd*.rpm
+.vagrant
+vagrant.key
