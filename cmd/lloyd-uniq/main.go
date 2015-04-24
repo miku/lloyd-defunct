@@ -10,6 +10,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"runtime/pprof"
 	"strings"
 	"time"
 
@@ -19,11 +20,21 @@ import (
 
 func main() {
 	key := flag.String("key", "", "key to deduplicate on")
+	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
 
 	flag.Parse()
 
 	if flag.NArg() < 1 {
 		log.Fatal("input file required")
+	}
+
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
 	}
 
 	file, err := os.Open(flag.Arg(0))
