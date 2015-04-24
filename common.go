@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const AppVersion = "0.2.3"
+const AppVersion = "0.2.4"
 
 // StringValue returns the value for a given key in dot notation
 func StringValue(key string, doc map[string]interface{}) (string, error) {

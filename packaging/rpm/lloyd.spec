@@ -1,6 +1,6 @@
 Summary:    Line-delimited JSON utils.
 Name:       lloyd
-Version:    0.2.3
+Version:    0.2.4
 Release:    0
 License:    MIT
 BuildRoot:  %{_tmppath}/%{name}-build
