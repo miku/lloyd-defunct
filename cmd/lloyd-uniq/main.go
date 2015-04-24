@@ -38,11 +38,16 @@ func main() {
 	reader := bufio.NewReader(file)
 
 	rand.Seed(time.Now().UTC().UnixNano())
-	db, err := sql.Open("sqlite3", fmt.Sprintf("./.lloyd.tmp-%d", rand.Int63n(10000000000)))
+	dbpath := fmt.Sprintf("./.lloyd.tmp-%d", rand.Int63n(10000000000))
+	db, err := sql.Open("sqlite3", dbpath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+
+	defer func() {
+		db.Close()
+		os.Remove(dbpath)
+	}()
 
 	init := `CREATE TABLE IF NOT EXISTS store (key text UNIQUE, value text)`
 	_, err = db.Exec(init)
