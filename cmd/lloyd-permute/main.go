@@ -53,34 +53,34 @@ func process(sis []SeekInfo, filename string) {
 	last := sis[len(sis)-1]
 	globalDiff := first.Offset
 
-	fmt.Println(len(sis), "items", first.Offset, last.Offset+last.Length, globalDiff)
+	// fmt.Println(len(sis), "items", first.Offset, last.Offset+last.Length, globalDiff)
 
 	// region must start at some multiple of pagesize
 	regionOffset := lower(first.Offset, pagesize)
 
 	// shift is the amount you need to add to every seekinfo in order to be useful
 	shift := first.Offset - regionOffset
-	fmt.Println("shift", shift)
+	log.Println("shift", shift)
 
-	regionLength := int(last.Offset + last.Length - first.Offset)
-	fmt.Println("mmap region offset/length", regionOffset, regionLength)
+	regionLength := int(last.Offset+last.Length-first.Offset) + int(shift)
+	log.Println("mmap region offset/length", regionOffset, regionLength)
 	mm, err := mmap.MapRegion(file, regionLength, mmap.RDONLY, 0, regionOffset)
 	if err != nil {
 		log.Fatal(err)
 	}
 	// iterate over pieces
-	fmt.Println("mm", len(mm), "sis", len(sis), globalDiff)
+	log.Println("mm", len(mm), "sis", len(sis), globalDiff)
 	for i, si := range sis {
-		a := si.Offset - globalDiff - shift
-		b := a + si.Length - shift
-		fmt.Println(i, len(sis), a, b)
-		fmt.Printf("mm[%d:%d] %d\n", a, b, i)
-		// fmt.Println(string(mm[a:b]))
+		a := si.Offset - globalDiff + shift
+		b := a + si.Length
+		log.Println(i, len(sis), a, b)
+		log.Printf("mm[%d:%d] %d\n", a, b, i)
+		fmt.Print(string(mm[a:b]))
 	}
 	if err := mm.Unmap(); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("---")
+	log.Println("---")
 }
 
 func main() {
