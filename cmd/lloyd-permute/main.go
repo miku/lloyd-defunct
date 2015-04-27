@@ -26,26 +26,29 @@ import (
 	"github.com/miku/lloyd"
 )
 
+var Pagesize = int64(os.Getpagesize())
+
 type SeekInfo struct {
 	Offset int64
 	Length int64
 }
 
+// lower returns the closest number that is <= val AND is a multiple of size
 func lower(val, size int64) int64 {
 	return val + (size - val%size) - size
 }
 
-func process(sis []SeekInfo, filename string) {
-
-	pagesize := int64(os.Getpagesize())
-
-	// log.Printf("seek batch size %d\n", len(sis))
-
+func process(sis []SeekInfo, filename string, w io.Writer) {
 	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	if len(sis) == 0 {
 		return
@@ -53,41 +56,37 @@ func process(sis []SeekInfo, filename string) {
 
 	first := sis[0]
 	last := sis[len(sis)-1]
-	globalDiff := first.Offset
 
-	// fmt.Println(len(sis), "items", first.Offset, last.Offset+last.Length, globalDiff)
-
-	// region must start at some multiple of pagesize
-	regionOffset := lower(first.Offset, pagesize)
-
-	// shift is the amount you need to add to every seekinfo in order to be useful
+	regionOffset := lower(first.Offset, Pagesize)
 	shift := first.Offset - regionOffset
-	// log.Println("shift", shift)
-
 	regionLength := int(last.Offset+last.Length-first.Offset) + int(shift)
-	// log.Println("mmap region offset/length", regionOffset, regionLength)
+
 	mm, err := mmap.MapRegion(file, regionLength, mmap.RDONLY, 0, regionOffset)
-	// log.Printf("region length: %d", regionLength)
+	defer func() {
+		if err := mm.Unmap(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	if err != nil {
 		log.Fatal(err)
 	}
-	// iterate over pieces
-	// log.Println("mm", len(mm), "sis", len(sis), globalDiff)
+
+	globalOffset := first.Offset
+
+	bw := bufio.NewWriter(w)
+	defer bw.Flush()
+
 	for _, si := range sis {
-		a := si.Offset - globalDiff + shift
+		a := si.Offset - globalOffset + shift
 		b := a + si.Length
-		// log.Println(i, len(sis), a, b)
-		// log.Printf("mm[%d:%d] %d\n", a, b, i)
-		fmt.Print(string(mm[a:b]))
+		bw.WriteString(string(mm[a:b]))
 	}
-	if err := mm.Unmap(); err != nil {
-		log.Fatal(err)
-	}
-	// log.Println("---")
 }
 
 func main() {
 	version := flag.Bool("v", false, "prints current program version")
+	size := flag.Int("size", 32, "approximate size of mmap'd pieces in mb")
 
 	flag.Parse()
 
@@ -110,8 +109,7 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	var slices []SeekInfo
-	windowSize := 1000000
-	currentWindow := windowSize
+	currentWindow := *size * 1048576
 
 	for {
 		line, err := reader.ReadString('\n')
@@ -123,7 +121,7 @@ func main() {
 		}
 		fields := strings.Fields(line)
 		if len(fields) != 2 {
-			log.Fatal("two columns required")
+			log.Fatal("two columns required (offset, length)")
 		}
 		offset, err := strconv.Atoi(fields[0])
 		if err != nil {
@@ -135,22 +133,18 @@ func main() {
 		}
 
 		si := SeekInfo{Offset: int64(offset), Length: int64(length)}
-		if offset > currentWindow {
-			// hand over to mmap
-			currentWindow = currentWindow + windowSize
-			dst := make([]SeekInfo, len(slices))
-			copy(dst, slices)
-			process(dst, filename)
-			slices = slices[:0]
-		}
 		slices = append(slices, si)
 
-		// buf := make([]byte, length)
-		// file.Seek(int64(offset), 0)
-		// _, err = file.Read(buf)
-		// if err != io.EOF && err != nil {
-		// 	log.Fatal(err)
-		// }
-		// fmt.Printf(string(buf))
+		if offset > currentWindow {
+			currentWindow = currentWindow + *size*1048576
+			dst := make([]SeekInfo, len(slices))
+			copy(dst, slices)
+			process(dst, filename, os.Stdout)
+			slices = slices[:0]
+		}
 	}
+
+	dst := make([]SeekInfo, len(slices))
+	copy(dst, slices)
+	process(dst, filename, os.Stdout)
 }
