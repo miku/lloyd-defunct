@@ -37,34 +37,39 @@ func lower(val, size int64) int64 {
 
 func process(sis []SeekInfo, filename string) {
 
+	pagesize := int64(os.Getpagesize())
+
 	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	defer file.Close()
 
-	pagesize := os.Getpagesize()
+	if len(sis) == 0 {
+		return
+	}
 
-	if len(sis) > 0 {
-		first := sis[0]
-		last := sis[len(sis)-1]
-		log.Println(len(sis), "items", first.Offset, last.Offset+last.Length)
+	first := sis[0]
+	last := sis[len(sis)-1]
+	globalDiff := first.Offset
 
-		regionOffset := lower(first.Offset, int64(pagesize))
+	log.Println(len(sis), "items", first.Offset, last.Offset+last.Length, globalDiff)
 
-		diff := regionOffset - first.Offset
-		log.Println(diff)
+	// region must start at some multiple of pagesize
+	regionOffset := lower(first.Offset, pagesize)
 
-		regionLength := int(first.Offset - regionOffset + last.Offset + last.Length)
-		log.Println("mmap region", regionOffset, regionLength)
-		mm, err := mmap.MapRegion(file, regionLength, mmap.RDONLY, 0, regionOffset)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Println(string(mm[first.Offset-diff : first.Length-diff]))
-	} else {
-		log.Println("empty")
+	// shift is the amount you need to add to every seekinfo in order to be useful
+	shift := regionOffset - first.Offset
+
+	regionLength := int(first.Offset-regionOffset+last.Offset+last.Length) - int(globalDiff)
+	log.Println("mmap region offset/length", regionOffset, regionLength)
+	mm, err := mmap.MapRegion(file, regionLength, mmap.RDONLY, 0, regionOffset)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(string(mm[(first.Offset-globalDiff)-shift : first.Length-shift]))
+	if err := mm.Unmap(); err != nil {
+		log.Fatal(err)
 	}
 }
 
@@ -92,7 +97,7 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	var slices []SeekInfo
-	windowSize := 1000000
+	windowSize := 10000
 	currentWindow := windowSize
 
 	for {
