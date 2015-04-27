@@ -39,6 +39,8 @@ func process(sis []SeekInfo, filename string) {
 
 	pagesize := int64(os.Getpagesize())
 
+	// log.Printf("seek batch size %d\n", len(sis))
+
 	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)
@@ -60,27 +62,28 @@ func process(sis []SeekInfo, filename string) {
 
 	// shift is the amount you need to add to every seekinfo in order to be useful
 	shift := first.Offset - regionOffset
-	log.Println("shift", shift)
+	// log.Println("shift", shift)
 
 	regionLength := int(last.Offset+last.Length-first.Offset) + int(shift)
-	log.Println("mmap region offset/length", regionOffset, regionLength)
+	// log.Println("mmap region offset/length", regionOffset, regionLength)
 	mm, err := mmap.MapRegion(file, regionLength, mmap.RDONLY, 0, regionOffset)
+	// log.Printf("region length: %d", regionLength)
 	if err != nil {
 		log.Fatal(err)
 	}
 	// iterate over pieces
-	log.Println("mm", len(mm), "sis", len(sis), globalDiff)
-	for i, si := range sis {
+	// log.Println("mm", len(mm), "sis", len(sis), globalDiff)
+	for _, si := range sis {
 		a := si.Offset - globalDiff + shift
 		b := a + si.Length
-		log.Println(i, len(sis), a, b)
-		log.Printf("mm[%d:%d] %d\n", a, b, i)
+		// log.Println(i, len(sis), a, b)
+		// log.Printf("mm[%d:%d] %d\n", a, b, i)
 		fmt.Print(string(mm[a:b]))
 	}
 	if err := mm.Unmap(); err != nil {
 		log.Fatal(err)
 	}
-	log.Println("---")
+	// log.Println("---")
 }
 
 func main() {
@@ -107,7 +110,7 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	var slices []SeekInfo
-	windowSize := 10000
+	windowSize := 1000000
 	currentWindow := windowSize
 
 	for {
