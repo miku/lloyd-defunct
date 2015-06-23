@@ -1,14 +1,15 @@
 README
 ======
 
-Did you ever wanted to use `uniq` on a line delimited JSON file? You've come to the right place.
+----
 
 DEPRECATION NOTICE: Use a combination of [jq](http://stedolan.github.io/jq/), [ldjtab](https://github.com/miku/ldjtab),
 [filterline](https://github.com/miku/filterline) or [some awk](https://gist.github.com/miku/bc8315b10413203b31de).
-More details: [sketch on data compaction](https://github.com/miku/filterline#readme), [Filter file by line number](http://unix.stackexchange.com/q/209404/376)
-
+More details: [sketch on data compaction](https://github.com/miku/filterline#readme), [Filter file by line number](http://unix.stackexchange.com/q/209404/376).
 
 ----
+
+Did you ever wanted to use `uniq` on a line delimited JSON file? You've come to the right place.
 
 Installation
 ------------
